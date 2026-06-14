@@ -3,17 +3,30 @@
  * ===========================================================================*/
 
 /* 出生地 → 標準時オフセット(時間)。サインの算出に必要なのはタイムゾーン。
-   ※ 歴史的サマータイムは未考慮（標準時で計算）。日本は常に+9。 */
-const PLACES = [
-  ['日本（全国・JST）', 9], ['北海道', 9], ['東京', 9], ['大阪', 9], ['福岡', 9], ['沖縄', 9],
-  ['韓国・ソウル', 9], ['中国・北京', 8], ['台湾・台北', 8], ['香港', 8], ['シンガポール', 8],
-  ['タイ・バンコク', 7], ['インド・デリー', 5.5], ['ドバイ(UAE)', 4],
-  ['イギリス・ロンドン', 0], ['フランス・パリ', 1], ['ドイツ・ベルリン', 1], ['イタリア・ローマ', 1],
-  ['ロシア・モスクワ', 3], ['南アフリカ', 2],
-  ['アメリカ東部(ニューヨーク)', -5], ['アメリカ中部(シカゴ)', -6], ['アメリカ山岳部(デンバー)', -7],
-  ['アメリカ西部(ロサンゼルス)', -8], ['ハワイ', -10], ['ブラジル・サンパウロ', -3],
-  ['オーストラリア・シドニー', 10], ['ニュージーランド', 12],
+   ※ 歴史的サマータイムは未考慮（標準時で計算）。日本は47都道府県すべて+9。 */
+const JP_PREF = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県',
+  '茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県',
+  '新潟県','富山県','石川県','福井県','山梨県','長野県',
+  '岐阜県','静岡県','愛知県','三重県',
+  '滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県',
+  '鳥取県','島根県','岡山県','広島県','山口県',
+  '徳島県','香川県','愛媛県','高知県',
+  '福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+
+const PLACE_GROUPS = [
+  { label:'日本（都道府県）', items: JP_PREF.map(p => [p, 9]) },
+  { label:'海外', items: [
+    ['韓国・ソウル', 9], ['中国・北京', 8], ['台湾・台北', 8], ['香港', 8], ['シンガポール', 8],
+    ['タイ・バンコク', 7], ['インド・デリー', 5.5], ['ドバイ(UAE)', 4],
+    ['イギリス・ロンドン', 0], ['フランス・パリ', 1], ['ドイツ・ベルリン', 1], ['イタリア・ローマ', 1],
+    ['ロシア・モスクワ', 3], ['南アフリカ', 2],
+    ['アメリカ東部(ニューヨーク)', -5], ['アメリカ中部(シカゴ)', -6], ['アメリカ山岳部(デンバー)', -7],
+    ['アメリカ西部(ロサンゼルス)', -8], ['ハワイ', -10], ['ブラジル・サンパウロ', -3],
+    ['オーストラリア・シドニー', 10], ['ニュージーランド', 12],
+  ]},
 ];
+/* インデックス参照用にフラット化（value=連番） */
+const PLACES = PLACE_GROUPS.flatMap(g => g.items);
 
 const $ = (id) => document.getElementById(id);
 
@@ -25,10 +38,18 @@ function init(){
   const daySel=$('day'); for(let d=1;d<=31;d++) daySel.add(new Option(d+'日', d));
   const hourSel=$('hour'); for(let h=0;h<24;h++) hourSel.add(new Option(('0'+h).slice(-2)+'時', h));
   const minSel=$('min'); for(let mi=0;mi<60;mi+=1) minSel.add(new Option(('0'+mi).slice(-2)+'分', mi));
-  const placeSel=$('place'); PLACES.forEach((p,i)=>placeSel.add(new Option(p[0], i)));
+  const placeSel=$('place');
+  let idx=0;
+  for(const g of PLACE_GROUPS){
+    const og=document.createElement('optgroup'); og.label=g.label;
+    for(const it of g.items){ og.appendChild(new Option(it[0], idx++)); }
+    placeSel.appendChild(og);
+  }
+  const tokyoIdx = PLACES.findIndex(p=>p[0]==='東京都');
 
   // 既定値
-  yearSel.value=1990; monthSel.value=1; daySel.value=1; hourSel.value=12; minSel.value=0; placeSel.value=0;
+  yearSel.value=1990; monthSel.value=1; daySel.value=1; hourSel.value=12; minSel.value=0;
+  placeSel.value = tokyoIdx>=0 ? tokyoIdx : 0;
 
   $('unknownTime').addEventListener('change', e=>{
     const dis=e.target.checked; hourSel.disabled=dis; minSel.disabled=dis;
