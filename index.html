@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ホロスコープ作成｜西洋占星術シート＋超一流の鑑定</title>
+<meta name="description" content="生年月日・出生時刻・出生地から本格的なホロスコープ（西洋占星術シート）を無料作成。一流占星術師の鑑定文に加え、四柱推命・動物占い・六星占術・五星三心占いも表示。">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="stars"></div>
+  <h1>✦ ホロスコープ作成 ✦</h1>
+  <p class="sub">生年月日・生まれた時間・場所から、本格ホロスコープと一流占星術師の鑑定をお届けします</p>
+</header>
+
+<main>
+  <section class="form">
+    <h2>あなたの情報を入力</h2>
+    <div class="field">
+      <label>お名前（任意）</label>
+      <input id="name" type="text" placeholder="例：山田 太郎" maxlength="20">
+    </div>
+
+    <div class="field">
+      <label>生年月日</label>
+      <div class="row">
+        <select id="year"></select><select id="month"></select><select id="day"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>生まれた時間</label>
+      <div class="row" id="timeWrap">
+        <select id="hour"></select><select id="min"></select>
+      </div>
+      <label class="check"><input type="checkbox" id="unknownTime"> 生まれた時間がわからない（正午で計算します）</label>
+    </div>
+
+    <div class="field">
+      <label>生まれた場所</label>
+      <select id="place"></select>
+      <p class="hint">主に星の位置（タイムゾーン）の計算に使用します。日本国内ならどれでも同じ結果です。</p>
+    </div>
+
+    <button id="runBtn" class="run">🔮 ホロスコープを作成する</button>
+  </section>
+
+  <section id="result" class="hidden">
+    <div id="sheet" class="sheet"></div>
+    <div class="readingWrap">
+      <h2 class="rdTitle">✦ 鑑定 — 超一流の占星術師より ✦</h2>
+      <div id="reading"></div>
+    </div>
+    <div class="otherWrap">
+      <h2 class="rdTitle">参考：東洋の占い</h2>
+      <div id="other"></div>
+    </div>
+    <p class="footnote">天体の位置は天文計算ライブラリ astronomy-engine による精密計算（トロピカル方式）。星の配置は「設計図」であり、未来を断定するものではありません。</p>
+  </section>
+</main>
+
+<footer>
+  <p>Made with ✦ 西洋占星術シート方式 ／ 計算: astronomy-engine (MIT)</p>
+</footer>
+
+<script src="vendor/astronomy.browser.min.js"></script>
+<script src="data.js"></script>
+<script src="engine.js"></script>
+<script src="interpret.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
