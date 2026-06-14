@@ -30,6 +30,9 @@ const PLACES = PLACE_GROUPS.flatMap(g => g.items);
 
 const $ = (id) => document.getElementById(id);
 
+let resultText = '';   // メール／コピー用の結果テキスト
+let resultName = '';
+
 function init(){
   // 年月日プルダウン
   const yearSel=$('year');
@@ -56,6 +59,64 @@ function init(){
     $('timeWrap').classList.toggle('disabled', dis);
   });
   $('runBtn').addEventListener('click', run);
+  $('mailBtn').addEventListener('click', sendMail);
+  $('copyBtn').addEventListener('click', copyResult);
+}
+
+/* ---- 結果テキストの生成（メール本文・コピー用） ---- */
+function buildPlainText(positions, reading, pillars, animal, roku, go, meta){
+  const strip = s => s.replace(/<[^>]+>/g,'');
+  const c = counts(positions);
+  const L = [];
+  L.push('★ ホロスコープ鑑定結果 ★', '');
+  if(meta.name) L.push('お名前：'+meta.name);
+  L.push('生年月日：'+meta.dateStr, '出生地：'+meta.placeName, '');
+  L.push('【10天体の配置】');
+  for(const p of PLANETS){ const s=SIGNS[positions[p.key].sign];
+    L.push(`${p.glyph} ${p.jp}：${s.yomi}座 ${positions[p.key].deg.toFixed(1)}°`); }
+  L.push('', '【バランス】',
+    `元素　火${c.elem[0]}・土${c.elem[1]}・風${c.elem[2]}・水${c.elem[3]}`,
+    `区分　活動${c.mode[0]}・固定${c.mode[1]}・柔軟${c.mode[2]}`,
+    `陰陽　陽${c.elem[0]+c.elem[2]}・陰${c.elem[1]+c.elem[3]}`, '');
+  L.push('【鑑定 — 超一流の占星術師より】', '');
+  for(const sec of reading){ L.push('■ '+strip(sec.h)); for(const p of sec.p) L.push(strip(p)); L.push(''); }
+  L.push('【参考：東洋の占い】',
+    `・四柱推命：年柱${pillars.year.gz}／月柱${pillars.month.gz}／日柱${pillars.day.gz}／時柱${pillars.hour.gz}`,
+    `・動物占い：${animal.character}（${animal.animal}／No.${animal.number}）`,
+    `・六星占術：${roku.full}`,
+    `・五星三心占い：${go.full}（命数${go.meisu}）`, '');
+  L.push('──────────', '作成：ホロスコープ作成アプリ', 'https://okazaki-bot.github.io/horoscope/');
+  return L.join('\n');
+}
+
+function showShareMsg(msg, ok=true){
+  const el = $('shareMsg'); el.textContent = msg;
+  el.style.color = ok ? 'var(--earth)' : 'var(--fire)';
+  clearTimeout(showShareMsg._t);
+  showShareMsg._t = setTimeout(()=>{ el.textContent=''; }, 5000);
+}
+
+function sendMail(){
+  if(!resultText){ showShareMsg('先に「ホロスコープを作成する」を押してください', false); return; }
+  const to = $('mailTo').value.trim();
+  const subject = `【ホロスコープ】${resultName||'あなた'}の鑑定結果`;
+  const href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(resultText)}`;
+  window.location.href = href;
+  showShareMsg('メールアプリを開きました。内容を確認して送信してください');
+}
+
+function copyResult(){
+  if(!resultText){ showShareMsg('先に「ホロスコープを作成する」を押してください', false); return; }
+  const done = ()=>showShareMsg('コピーしました！メール・LINE等に貼り付けられます');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(resultText).then(done).catch(fallbackCopy);
+  } else { fallbackCopy(); }
+  function fallbackCopy(){
+    const ta=document.createElement('textarea'); ta.value=resultText;
+    ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand('copy'); done(); }catch(e){ showShareMsg('コピーに失敗しました', false); }
+    ta.remove();
+  }
 }
 
 function run(){
@@ -93,6 +154,14 @@ function run(){
   $('reading').innerHTML = reading.map(s=>
     `<section class="rd"><h3>${s.h}</h3>${s.p.map(p=>`<p>${p}</p>`).join('')}</section>`).join('');
   $('other').innerHTML = renderOther(positions, pillars, animal, roku, go, {y,m,d,timeKnown});
+
+  // メール／コピー用テキスト
+  const dateStr = timeKnown
+    ? `${y}年${m}月${d}日 ${('0'+hour).slice(-2)}:${('0'+min).slice(-2)}`
+    : `${y}年${m}月${d}日（時刻不明→正午で計算）`;
+  resultName = name;
+  resultText = buildPlainText(positions, reading, pillars, animal, roku, go, {name, dateStr, placeName});
+
   $('result').classList.remove('hidden');
   $('result').scrollIntoView({behavior:'smooth'});
 }

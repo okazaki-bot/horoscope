@@ -50,6 +50,17 @@ input[type=text]{width:100%}
 .hidden{display:none}
 #result{margin-top:30px}
 
+/* share bar */
+.shareBar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.shareBar input{flex:1;min-width:180px;max-width:320px;background:var(--bg2);color:var(--ink);
+  border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:.95rem}
+.share{padding:10px 16px;font-size:.95rem;font-weight:700;cursor:pointer;border:none;border-radius:9px;
+  color:#241500;background:linear-gradient(90deg,var(--gold),var(--gold2));white-space:nowrap}
+.share.ghost{background:transparent;color:var(--gold2);border:1px solid var(--gold)}
+.share:hover{filter:brightness(1.08)}
+.shareMsg{flex-basis:100%;text-align:center;font-size:.85rem;min-height:1.1em}
+
 /* sheet */
 .sheetHead{text-align:center;margin-bottom:14px}
 .sheetHead h2{font-size:1.5rem;color:var(--gold2);margin:.2em 0;letter-spacing:.06em}
